@@ -1,0 +1,46 @@
+/* Colores por origen de pedido */
+.pedido-Local { border-left: 8px solid #0d6efd !important; }
+.pedido-Teléfono { border-left: 8px solid #198754 !important; }
+.pedido-App-Didi { border-left: 8px solid #ffc107 !important; }
+
+/* Estilos de Ticket */
+.ticket-visual {
+    background: #fff;
+    border: 1px dashed #000;
+    max-width: 400px;
+}
+
+.card-producto { cursor: pointer; border-radius: 12px; transition: 0.2s; }
+.card-producto:hover { border-color: #d90429; background-color: #fff5f5; transform: scale(1.02); }
+
+.custom-modal {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 2000;
+}
+.modal-content { background: white; padding: 20px; border-radius: 15px; width: 95%; max-width: 450px; }
+
+.btn-xs { padding: 0.25rem 0.4rem; font-size: 0.75rem; }
+.card-promo {
+    background: #fffdf2;
+    border: 2px dashed #ffc107;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.card-promo:hover {
+    background: #fff9e1;
+    border-style: solid;
+    transform: scale(1.03);
+}
+
+.promo-badge {
+    background: #d90429;
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}

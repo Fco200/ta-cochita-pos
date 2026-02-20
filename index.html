@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS - Ta' Cochita</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body class="bg-light">
+
+<div id="login-screen" class="container-fluid d-flex align-items-center justify-content-center vh-100 bg-danger">
+    <div class="card p-4 shadow-lg text-center" style="width: 350px;">
+        <h2 class="mb-4">🐷 Ta' Cochita</h2>
+        <div class="mb-3 text-start">
+            <label class="fw-bold">Seleccionar Cajera/o:</label>
+            <select id="user-select" class="form-select form-select-lg">
+                <option value="Aurelia">Aurelia</option>
+                <option value="Cajera 2">Cajera 2</option>
+                <option value="Admin">Administrador</option>
+            </select>
+        </div>
+        <div class="mb-3 text-start">
+            <label class="fw-bold">Contraseña:</label>
+            <input type="password" id="user-pass" class="form-control" placeholder="****">
+        </div>
+        <button class="btn btn-dark w-100 btn-lg" onclick="login()">Entrar</button>
+    </div>
+</div>
+
+<div id="main-app" style="display: none;">
+    <nav class="navbar navbar-dark bg-dark mb-3 shadow">
+        <div class="container-fluid">
+            <span class="navbar-brand">
+    📍 Atiende: <strong id="current-user-name"></strong>
+    <button class="btn btn-sm btn-outline-light ms-2" onclick="toggleCambiarPass()" style="font-size: 10px;">⚙️ Cambiar Clave</button>
+</span>
+            <div>
+                <button class="btn btn-info btn-sm fw-bold" onclick="toggleNuevoProducto()">➕ Nuevo Producto</button>
+                <button class="btn btn-warning btn-sm mx-2 fw-bold" onclick="toggleHistorial()">📊 Historial</button>
+                <button class="btn btn-outline-light btn-sm" onclick="logout()">Salir</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row mb-3">
+            <div class="col-12 d-flex justify-content-center">
+                <div class="btn-group w-75 shadow-sm">
+                    <input type="radio" class="btn-check" name="orderType" id="btn-local" value="Local" checked>
+                    <label class="btn btn-outline-danger py-2" for="btn-local">🏠 Local</label>
+                    <input type="radio" class="btn-check" name="orderType" id="btn-tel" value="Teléfono">
+                    <label class="btn btn-outline-danger py-2" for="btn-tel">📞 Teléfono</label>
+                    <input type="radio" class="btn-check" name="orderType" id="btn-app" value="App/Didi">
+                    <label class="btn btn-outline-danger py-2" for="btn-app">📱 App</label>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid mb-4">
+    <div class="card border-warning shadow-sm">
+        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold">🔥 PROMOCIONES ACTIVAS</h5>
+            <button class="btn btn-sm btn-dark fw-bold" onclick="toggleNuevaPromo()">⚙️ Gestionar Promos</button>
+        </div>
+        <div class="card-body bg-white">
+            <div class="row g-3" id="contenedor-promociones">
+                </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-nueva-promo" class="custom-modal" style="display:none;">
+    <div class="modal-content border-warning">
+        <h4 class="fw-bold text-warning text-center">Configurar Promoción</h4>
+        <div class="mb-3">
+            <label class="small fw-bold">Nombre de la Promo:</label>
+            <input type="text" id="prm-nombre" class="form-control" placeholder="Ej: Combo Pareja (2 Tortas + 2 Sodas)">
+        </div>
+        <div class="row mb-3">
+            <div class="col-6">
+                <label class="small fw-bold">Precio Especial:</label>
+                <input type="number" id="prm-precio" class="form-control" placeholder="150">
+            </div>
+            <div class="col-6">
+                <label class="small fw-bold">Icono/Emoji:</label>
+                <input type="text" id="prm-icono" class="form-control" placeholder="🎁">
+            </div>
+        </div>
+        <div class="d-grid gap-2">
+            <button class="btn btn-warning fw-bold" onclick="guardarNuevaPromo()">Activar Promo</button>
+            <button class="btn btn-outline-danger btn-sm" onclick="borrarTodasPromos()">Borrar todas las promos actuales</button>
+            <button class="btn btn-secondary" onclick="toggleNuevaPromo()">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="row g-2" id="contenedor-productos"></div>
+                <div class="card mt-4 shadow border-dark">
+                    <div class="card-header bg-dark text-white fw-bold">📋 Pedidos Pendientes</div>
+                    <div class="card-body bg-secondary-subtle">
+                        <div class="row" id="contenedor-pedidos-pendientes"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card shadow border-danger sticky-top" style="top: 20px;">
+                    <div class="card-header bg-danger text-white fw-bold">🛒 Detalle</div>
+                    <div class="card-body p-0" style="max-height: 300px; overflow-y: auto;">
+                        <table class="table table-sm mb-0"><tbody id="lista-carrito"></tbody></table>
+                    </div>
+                    <div class="card-footer bg-white border-top-0">
+                        <input type="text" id="notas-pedido" class="form-control mb-2" placeholder="Nombre / Notas">
+                        <select id="metodo-pago" class="form-select form-select-sm mb-2" onchange="actualizarInterfazPago()">
+                            <option value="Efectivo">💵 Efectivo</option>
+                            <option value="Tarjeta">💳 Tarjeta</option>
+                            <option value="Transferencia">📱 Transf.</option>
+                        </select>
+                        <h2 class="text-end mb-1 border-top pt-2">Total: $<span id="total-venta">0</span></h2>
+                        <div id="seccion-pago-efectivo">
+                            <input type="number" id="efectivo" class="form-control form-control-lg mb-2" placeholder="Recibido" oninput="calcularCambioReal()">
+                            <div class="alert alert-secondary py-1 text-center fw-bold">Cambio: $<span id="cambio-venta">0.00</span></div>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-primary fw-bold" onclick="crearPedidoPendiente()">⏳ AGENDAR</button>
+                            <button class="btn btn-success py-3 fw-bold" onclick="mostrarConfirmacionCobro()">✅ COBRAR</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modal-ticket" class="custom-modal" style="display:none;">
+    <div class="modal-content ticket-visual">
+        <div id="ticket-imprimible" class="p-3 text-center" style="font-family: monospace;">
+            <h4>TA' COCHITA</h4>
+            <p id="t-origen" class="fw-bold bg-light"></p>
+            <div id="t-items" class="text-start small"></div>
+            <hr>
+            <h5 class="text-end" id="t-total"></h5>
+            <p id="t-pago" class="text-end small mb-0"></p>
+            <p id="t-cambio" class="text-end small"></p>
+        </div>
+        <div class="d-grid gap-2 mt-3">
+            <button class="btn btn-success" onclick="confirmarYGuardar()">CONFIRMAR COBRO Y GUARDAR</button>
+            <button class="btn btn-outline-dark" onclick="imprimirPDF()">SOLO DESCARGAR TICKET PDF</button>
+            <button class="btn btn-danger" onclick="cerrarTicket()">CANCELAR</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-nuevo-producto" class="custom-modal" style="display:none;">
+    <div class="modal-content">
+        <h4>Añadir Nuevo Platillo</h4>
+        <input type="text" id="np-nombre" class="form-control mb-2" placeholder="Nombre (Ej: Taco de Tripa)">
+        <input type="number" id="np-precio" class="form-control mb-2" placeholder="Precio (Ej: 35)">
+        <input type="text" id="np-icono" class="form-control mb-3" placeholder="Emoji (Ej: 🌯)">
+        <button class="btn btn-success w-100 mb-2" onclick="guardarNuevoProducto()">Guardar Producto</button>
+        <button class="btn btn-secondary w-100" onclick="toggleNuevoProducto()">Cerrar</button>
+    </div>
+</div>
+
+<div id="modal-historial" class="custom-modal" style="display:none;">
+    <div class="modal-content shadow-lg border-0" style="max-width: 600px;">
+        <h3>📊 Resumen de Ventas</h3>
+        <div id="stats-container" class="row text-center mb-3 g-2"></div>
+        <div class="table-responsive" style="max-height: 300px;">
+            <table class="table table-sm"><thead class="table-dark"><tr><th>Hora</th><th>Tipo</th><th>Pago</th><th>Total</th></tr></thead>
+                <tbody id="lista-historial"></tbody>
+            </table>
+        </div>
+        <hr>
+        <div class="d-flex justify-content-between">
+            <button class="btn btn-secondary" onclick="toggleHistorial()">Cerrar</button>
+            <button class="btn btn-danger fw-bold" onclick="limpiarCorte()">Hacer Corte</button>
+        </div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+<div id="modal-cambiar-pass" class="custom-modal" style="display:none;">
+    <div class="modal-content" style="max-width: 300px;">
+        <h5>Nueva Contraseña</h5>
+        <p class="small">Usuario: <span id="pass-user-target" class="fw-bold"></span></p>
+        <input type="password" id="nueva-pass-input" class="form-control mb-3" placeholder="****">
+        <button class="btn btn-success w-100 mb-2" onclick="guardarNuevaPass()">Guardar</button>
+        <button class="btn btn-secondary w-100" onclick="toggleCambiarPass()">Cancelar</button>
+    </div>
+</div>
+</body>
+</html>
